@@ -10,7 +10,7 @@ class RemoteHost
   end
 
   def deploy(options)
-    exclude_options = (options[:excludes] + ['logs']).map { |exclude| "--exclude=#{exclude}" }.join(' ')
+    exclude_options = (options[:excludes]).map { |exclude| "--exclude=#{exclude}" }.join(' ')
     cmd = "rsync -av --delete --rsh=\"/usr/bin/sshpass -e ssh -o StrictHostKeyChecking=no\" #{exclude_options} #{options[:dist_folder]} #{@user[:username]}@#{@host}:"
     puts cmd
     IO.popen(ENV.merge!({ 'SSHPASS' => @user[:password] }), cmd) do |io|
@@ -26,7 +26,7 @@ class RemoteHost
     Net::SSH.start(@host, @user[:username], password: @user[:password], verify_host_key: :never) do |ssh|
       commands.each do |command|
         puts "Running the remote command: #{command}"
-        status = {}
+        status = {exit_code: 0}
         ssh.exec!(command, status: status) do |_, _, data|
           puts data
         end

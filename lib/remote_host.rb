@@ -26,12 +26,21 @@ class RemoteHost
     Net::SSH.start(@host, @user[:username], password: @user[:password], verify_host_key: :never) do |ssh|
       commands.each do |command|
         puts "Running the remote command: #{command}"
-        status = {exit_code: 0}
-        ssh.exec!(command, status: status) do |_, _, data|
+        status = Status.new(0)
+        test = ssh.exec!(command, status: status)
+        ssh.exec!(command, status: status) do |test, status, data|
           puts data
         end
         abort 'Error running the remote command' unless status[:exit_code].zero?
       end
     end
+  end
+end
+
+class Status
+  attr_accessor :exit_code
+
+  def initialize(exit_code)
+    exit_code = exit_code
   end
 end
